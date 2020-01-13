@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t kubista/react-test -f ./client/Dockerfile.dev  ./client
+
+script:
+  - docker run kubista/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t kubista/multi-client ./client
+  - docker build -t kubista/multi-nginx ./nginx
+  - docker build -t kubista/multi-server ./server
+  - docker build -t kubista/multi-worker ./worker
+  - echo $DOCKER_PASSWORD | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push kubista/multi-client
+  - docker push kubista/multi-nginx
+  - docker push kubista/multi-server
+  - docker push kubista/multi-worker
